@@ -1,10 +1,11 @@
 import { APIRequestContext } from "@playwright/test"
+import { expect } from "@playwright/test"
 
 export class RequestHandler {
 
     private baseUrl: string = ''
     private request: APIRequestContext
-    private defaultBaseUrl: string = ''
+    private defaultBaseUrl: string
     private apiPath: string = ''
     private queryParams: object = {}
     private apiHeaders: Record<string, string> = {}
@@ -52,16 +53,17 @@ export class RequestHandler {
 
     async getRequest (){
         const url = this.getUrl();
-        const response = await this.request.get(url, {
-            headers: this.apiHeaders
-        });
+        const response = await this.request.get(url, {headers: this.apiHeaders});
         const responseJSON = await response.json();
+        expect(response.ok()).toBeTruthy();
+        expect(response.status()).toBe(200);
+        console.log('Response:', responseJSON);
+        return responseJSON;
     }
-
 
     
     getUrl(){
-        const url = new URL(`${this.baseUrl ?? this.defaultBaseUrl}${this.apiPath}`);
+        const url = new URL(`${this.baseUrl || this.defaultBaseUrl}${this.apiPath}`);
         for (const [key, value] of Object.entries(this.queryParams)) {
             url.searchParams.append(key, value as string);
         }
